@@ -17,7 +17,6 @@ const ModalProvider = ({ products }) => {
     <>
       <AuthModal />
       <UploadModal />
-      <SubscribeModal products={products} />
     </>
   );
 };

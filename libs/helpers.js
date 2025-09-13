@@ -2,7 +2,7 @@ export const getURL = () => {
   let url =
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.NEXT_PUBLIC_VERCEL_URL ??
-    "http://localhost:3000";
+    "http://127.0.0.1:3000";
 
   url = url.includes("http") ? url : `https://${url}`;
   url = url.charAt(url.length - 1) === "/" ? url : `${url}/`;
@@ -35,12 +35,4 @@ export const toDateTime = (secs) => {
   return t;
 };
 
-export const formatPrice = (price) => {
-  const priceString = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: price.currency,
-    minimumFractionDigits: 0,
-  }).format((price?.unit_amount || 0) / 100);
 
-  return priceString;
-};

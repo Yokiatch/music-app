@@ -1,64 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-
 import { useUser } from "@/hooks/useUser";
-import { postData } from "@/libs/helpers";
 import { useRouter } from "next/navigation";
-import useSubscribeModal from "@/hooks/useSubscribeModal";
 import Button from "@/components/Button";
 
 const AccountContent = () => {
   const router = useRouter();
-  const subscribeModal = useSubscribeModal();
-  const { isLoading, user, subscription } = useUser();
-
-  const [loading, setLoading] = useState(false);
+  const { isLoading, user, userDetails } = useUser();
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/");
   }, [isLoading, user, router]);
 
-  const redirectToCustomerPortal = async () => {
-    setLoading(true);
-    try {
-      const { url } = await postData({
-        url: "/api/create-portal-link",
-      });
-
-      window.location.assign(url);
-    } catch (error) {
-      toast.error(error.message);
-    }
-    setLoading(false);
-  };
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="mb-7 px-6">
-      {!subscription && (
-        <div className="flex flex-col gap-y-4">
-          <p>No active plan</p>
-          <Button className="w-[300px]" onClick={subscribeModal.onOpen}>
-            Subscribe
-          </Button>
+      <div className="mb-4">
+        <h1 className="text-white text-3xl font-semibold">Account Settings</h1>
+      </div>
+      
+      <div className="mb-6">
+        <h2 className="text-white text-xl mb-2">Profile Information</h2>
+        <div className="text-neutral-400">
+          <p>Email: {user?.email}</p>
+          <p>Account created: {new Date(user?.created_at).toLocaleDateString()}</p>
         </div>
-      )}
-      {subscription && (
-        <div className="flex flex-col gap-y-4">
-          <p>
-            You are currently on the{" "}
-            <b>{subscription?.prices?.product?.name}</b> plan.
-          </p>
-          <Button
-            className="w-[300px]"
-            onClick={redirectToCustomerPortal}
-            disabled={loading || isLoading}
-          >
-            Open customer portal
-          </Button>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-white text-xl mb-2">Music Library</h2>
+        <div className="text-neutral-400">
+          <p>All your uploaded songs and favorites are stored securely</p>
+          <p>Connect to Spotify for additional music streaming</p>
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+// components/Library.jsx
+
 "use client";
 
 import { AiOutlinePlus } from "react-icons/ai";
@@ -8,21 +10,19 @@ import { useUser } from "@/hooks/useUser";
 import useUploadModal from "@/hooks/useUploadModal";
 import MediaItem from "./MediaItem";
 import useOnPlay from "@/hooks/useOnPlay";
-import useSubscribeModal from "@/hooks/useSubscribeModal";
 
 const Library = ({ songs }) => {
   const authModal = useAuthModal();
   const uploadModal = useUploadModal();
-  const { user, subscription } = useUser();
-  const subscribeModal = useSubscribeModal();
+  const { user } = useUser();
   const onPlay = useOnPlay(songs);
 
   const handleUpload = () => {
-    if (!user) return authModal.onOpen();
-
-    if (!subscription) return subscribeModal.onOpen();
-
-    return uploadModal.onOpen();
+    if (!user) {
+      authModal.onOpen();
+      return;
+    }
+    uploadModal.onOpen();
   };
 
   return (
@@ -40,11 +40,9 @@ const Library = ({ songs }) => {
       <div className="flex flex-col gap-y-2 mt-4 px-3">
         {songs.map((song) => (
           <MediaItem
-            onClick={(id) => {
-              onPlay(id);
-            }}
-            data={song}
             key={song.id}
+            data={song}
+            onClick={() => onPlay(song.id)}
           />
         ))}
       </div>

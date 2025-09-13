@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { NextResponse } from 'next/server';
 
 export async function middleware(req) {
   const res = NextResponse.next();
-  
-  // Temporarily disabled until environment variables are properly configured
-  // This allows the app to run while the Replit environment variables are sorted out
-  // const supabase = createMiddlewareClient({ req, res });
-  // await supabase.auth.getSession();
-  
+  const supabase = createMiddlewareClient({ req, res });
+  await supabase.auth.getSession();
   return res;
 }
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};

@@ -1,9 +1,11 @@
+// app/layout.jsx
+
 import { Figtree } from 'next/font/google';
 import './globals.css';
 
 import Sidebar from '@/components/Sidebar';
 import SupabaseProvider from '@/providers/SupabaseProvider';
-import UserProvider from '@/providers/UserProvider';
+import { MyUserContextProvider } from '@/hooks/useUser';    // ensure this matches your export
 import ModalProvider from '@/providers/ModalProvider';
 import ToasterProvider from '@/providers/ToasterProvider';
 import getSongsByUserId from '@/actions/getSongsByUserId';
@@ -24,15 +26,14 @@ export default async function RootLayout({ children }) {
       <body className={font.className}>
         <ToasterProvider />
         <SupabaseProvider>
-          <UserProvider>
-            <ModalProvider />
-            <div className="h-full">
-              <Sidebar songs={userSongs}>
-                {children}
-              </Sidebar>
-              <Player />
-            </div>
-          </UserProvider>
+          <MyUserContextProvider>
+            <ModalProvider>
+              <div className="h-full flex">
+                <Sidebar songs={userSongs}>{children}</Sidebar>
+                <Player />
+              </div>
+            </ModalProvider>
+          </MyUserContextProvider>
         </SupabaseProvider>
       </body>
     </html>

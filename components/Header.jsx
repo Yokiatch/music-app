@@ -55,10 +55,16 @@ const Header = ({ children, className }) => {
           </button>
         </div>
         <div className="flex md:hidden gap-x-2 items-center">
-          <button className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition">
+          <button
+            onClick={() => router.push("/")}
+            className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition"
+          >
             <HiHome className="text-black" size={20} />
           </button>
-          <button className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition">
+          <button
+            onClick={() => router.push("/search")}
+            className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75 transition"
+          >
             <BiSearch className="text-black" size={20} />
           </button>
         </div>
@@ -80,7 +86,7 @@ const Header = ({ children, className }) => {
               <div>
                 <Button
                   className="bg-transparent text-neutral-300 font-medium"
-                  onClick={authModal.onOpen}
+                  onClick={() => authModal.onOpen("signup")}
                 >
                   Sign up
                 </Button>
@@ -88,7 +94,7 @@ const Header = ({ children, className }) => {
               <div>
                 <Button
                   className="bg-white px-6 py-2"
-                  onClick={authModal.onOpen}
+                  onClick={() => authModal.onOpen("login")}
                 >
                   Login
                 </Button>

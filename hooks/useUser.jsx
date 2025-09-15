@@ -1,35 +1,44 @@
+// hooks/useUser.jsx
 "use client";
-  import { createContext, useContext, useEffect, useState } from "react";
-  import { useSessionContext, useUser as useSupaUser } from "@supabase/auth-helpers-react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useSessionContext, useUser as useSupaUser } from "@supabase/auth-helpers-react";
+import { supabase } from "@/libs/supabase";
 
-  export const UserContext = createContext();
+const UserContext = createContext();
 
-  export const MyUserContextProvider = ({ children }) => {
-    const { session, isLoading: supaLoading, supabaseClient: supabase } = useSessionContext();
-    const user = useSupaUser();
-    const [spotifyToken, setSpotifyToken] = useState(null);
+export function MyUserContextProvider({ children }) {
+  const { session } = useSessionContext();
+  const supaUser = useSupaUser();
+  const [spotifyToken, setSpotifyToken] = useState(null);
 
-    useEffect(() => {
-      if (user) {
-        supabase
+  useEffect(() => {
+    async function fetchToken() {
+      if (supaUser) {
+        const { data } = await supabase
           .from("users")
-          .select("spotify_access_token")
-          .eq("id", user.id)
-          .single()
-          .then(({ data }) => setSpotifyToken(data?.spotify_access_token ?? null))
-          .catch(console.error);
+          .select("spotify_access_token, spotify_expires_at, spotify_refresh_token")
+          .eq("id", supaUser.id)
+          .single();
+
+        if (data && data.spotify_access_token && Date.now() < data.spotify_expires_at) {
+          setSpotifyToken(data.spotify_access_token);
+        } else if (data && data.spotify_refresh_token) {
+          // Optionally refresh token here
+        }
       }
-    }, [user, supabase]);
+    }
+    fetchToken();
+  }, [supaUser]);
 
-    return (
-      <UserContext.Provider value={{ user, spotifyToken, isLoading: supaLoading }}>
-        {children}
-      </UserContext.Provider>
-    );
-  };
+  return (
+    <UserContext.Provider value={{ session, user: supaUser, spotifyToken }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
 
-  export const useUser = () => {
-    const ctx = useContext(UserContext);
-    if (!ctx) throw new Error("useUser must be used within MyUserContextProvider");
-    return ctx;
-  };
+export const useUser = () => {
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUser must be used within MyUserContextProvider");
+  return ctx;
+};

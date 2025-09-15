@@ -5,7 +5,7 @@ import './globals.css';
 
 import Sidebar from '@/components/Sidebar';
 import SupabaseProvider from '@/providers/SupabaseProvider';
-import { MyUserContextProvider } from '@/hooks/useUser';    // ensure this matches your export
+import { MyUserContextProvider } from '@/hooks/useUser';
 import ModalProvider from '@/providers/ModalProvider';
 import ToasterProvider from '@/providers/ToasterProvider';
 import getSongsByUserId from '@/actions/getSongsByUserId';
@@ -27,12 +27,11 @@ export default async function RootLayout({ children }) {
         <ToasterProvider />
         <SupabaseProvider>
           <MyUserContextProvider>
-            <ModalProvider>
-              <div className="h-full flex">
-                <Sidebar songs={userSongs}>{children}</Sidebar>
-                <Player />
-              </div>
-            </ModalProvider>
+            <ModalProvider />
+            <Sidebar songs={userSongs}>
+              {children}
+            </Sidebar>
+            <Player />
           </MyUserContextProvider>
         </SupabaseProvider>
       </body>

@@ -37,7 +37,7 @@ const Sidebar = ({ children, songs }) => {
     <div
       className={twMerge(
         `flex h-full`,
-        player.activeId && "h-[calc(100%-80px)]"
+        player.activeId && "h-[calc(100%-80px)]" // Adjust height if player is active
       )}
     >
       <div className="hidden md:flex flex-col gap-y-2 bg-black h-full w-[300px]">
@@ -49,12 +49,11 @@ const Sidebar = ({ children, songs }) => {
           </div>
         </Box>
         <Box className="overflow-y-auto h-full">
+          {/* Pass Spotify track objects here */}
           <Library songs={songs} />
         </Box>
       </div>
-      <main className="h-full flex-1 overflow-y-auto py-2 px-2">
-        {children}
-      </main>
+      <main className="h-full flex-1 overflow-y-auto py-2 px-2">{children}</main>
     </div>
   );
 };

@@ -1,13 +1,24 @@
-// components/ConnectSpotifyButton.jsx
-"use client";
+// components/SpotifyLoginButton.jsx
+
+import React from "react";
+
+const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI;
+const SCOPES = [
+  "user-read-email",
+  "user-read-private",
+  "streaming",
+  "user-modify-playback-state",
+  "user-read-playback-state",
+].join(" ");
+const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}`;
 
 export default function SpotifyLoginButton() {
   return (
-    <button
-      className="bg-green-500 text-white px-4 py-2 rounded"
-      onClick={() => (window.location.href = '/api/auth/login')}
-    >
-      Connect Spotify
-    </button>
+    <a href={AUTH_URL}>
+      <button className="btn btn-primary">
+        Login with Spotify
+      </button>
+    </a>
   );
 }

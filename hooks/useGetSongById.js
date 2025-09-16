@@ -1,37 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSessionContext } from "@supabase/auth-helpers-react";
-
+import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 
-const useGetSongById = (id) => {
+const useGetSongById = (id, accessToken) => {
   const [isLoading, setIsLoading] = useState(false);
   const [song, setSong] = useState(undefined);
 
-  const { supabaseClient } = useSessionContext();
-
   useEffect(() => {
-    if (!id) return;
+    if (!id || !accessToken) return;
 
     setIsLoading(true);
 
     const fetchData = async () => {
-      const { data, error } = await supabaseClient
-        .from("songs")
-        .select("*")
-        .eq("id", id)
-        .single();
+      try {
+        const res = await fetch(`https://api.spotify.com/v1/tracks/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
 
-      if (error) {
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error.message || "Failed to fetch song");
+        }
+
+        const data = await res.json();
+        setSong(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
         setIsLoading(false);
-        return toast.error(error.message);
       }
-
-      setSong(data);
-      setIsLoading(false);
     };
 
     fetchData();
-  }, [id, supabaseClient]);
+  }, [id, accessToken]);
 
   return useMemo(() => ({
     isLoading,

@@ -9,12 +9,12 @@ import Input from "./Input";
 
 const SearchInput = () => {
   const router = useRouter();
-  const [value, setValue] = useState(""); // ✅ Removed TypeScript syntax
+  const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 500);
 
   useEffect(() => {
     const query = {
-      title: debouncedValue,
+      q: debouncedValue, // changed param name to 'q' for Spotify search API convention if desired
     };
 
     const url = queryString.stringifyUrl({

@@ -3,66 +3,77 @@
 import { useEffect, useState } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { useRouter } from "next/navigation";
-import useAuthModal from "@/hooks/useAuthModal";
-import { useSessionContext } from "@supabase/auth-helpers-react";
-
-import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
 
-const LikeButton = ({ songId }) => {
+const LikeButton = ({ songId, accessToken }) => {
   const router = useRouter();
-  const { supabaseClient } = useSessionContext();
-
-  const authModal = useAuthModal();
-  const { user } = useUser();
-
   const [isLiked, setIsLiked] = useState(false);
 
+  // Check if track is saved by user on Spotify
   useEffect(() => {
-    if (!user?.id) return;
+    if (!accessToken || !songId) return;
 
-    const fetchData = async () => {
-      const { data, error } = await supabaseClient
-        .from("liked_songs")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("song_id", songId)
-        .single();
+    const checkIfLiked = async () => {
+      try {
+        const res = await fetch(
+          `https://api.spotify.com/v1/me/tracks/contains?ids=${songId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
 
-      if (!error && data) setIsLiked(true);
+        if (!res.ok) throw new Error("Failed to check liked status");
+
+        const data = await res.json();
+        setIsLiked(data[0] || false);
+      } catch (error) {
+        toast.error(error.message);
+      }
     };
 
-    fetchData();
-  }, [songId, supabaseClient, user?.id]);
+    checkIfLiked();
+  }, [songId, accessToken]);
 
   const LikeIcon = isLiked ? AiFillHeart : AiOutlineHeart;
 
   const handleLike = async () => {
-    if (!user) return authModal.onOpen();
+    if (!accessToken) {
+      toast.error("You must be logged in to like songs.");
+      return;
+    }
 
-    if (isLiked) {
-      const { error } = await supabaseClient
-        .from("liked_songs")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("song_id", songId);
+    try {
+      if (isLiked) {
+        // Remove from saved tracks
+        const res = await fetch(
+          `https://api.spotify.com/v1/me/tracks?ids=${songId}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (!res.ok) throw new Error("Failed to remove like");
 
-      if (error) toast.error(error.message);
-      else setIsLiked(false);
-    } else {
-      const { error } = await supabaseClient.from("liked_songs").insert({
-        song_id: songId,
-        user_id: user.id,
-      });
+        setIsLiked(false);
+        toast.success("Removed from liked songs");
+      } else {
+        // Save track
+        const res = await fetch(
+          `https://api.spotify.com/v1/me/tracks?ids=${songId}`,
+          {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (!res.ok) throw new Error("Failed to like track");
 
-      if (error) toast.error(error.message);
-      else {
         setIsLiked(true);
         toast.success("Liked!");
       }
+      router.refresh();
+    } catch (error) {
+      toast.error(error.message);
     }
-
-    router.refresh();
   };
 
   return (

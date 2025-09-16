@@ -1,16 +1,11 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+// useLoadSong.js
 
-const useLoadSong = (song) => {
-  const supabaseClient = useSupabaseClient();
+// Expects a Spotify track object (from Spotify search, library, playlist, etc.)
+const useLoadSong = (spotifyTrack) => {
+  if (!spotifyTrack) return "";
 
-  if (!song) return "";
-
-  const { data: songData } = supabaseClient
-    .storage
-    .from("songs")
-    .getPublicUrl(song.song_path);
-
-  return songData.publicUrl;
+  // Spotify track objects have a 'preview_url' property (30s preview mp3), or null if unavailable
+  return spotifyTrack.preview_url || "";
 };
 
 export default useLoadSong;

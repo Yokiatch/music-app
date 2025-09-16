@@ -1,34 +1,22 @@
-// pages/api/auth/callback/spotify.js
-import { getAccessToken } from '@/libs/spotify';
-import { supabase } from '@/libs/supabase';
+// app/api/auth/spotify/route.js
 
-export default async function handler(req, res) {
-  const { code, state } = req.query;
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const code = searchParams.get("code");
 
-  if (!code) {
-    return res.status(400).send('Missing code');
-  }
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET).toString("base64")}`,
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    }),
+  });
 
-  const tokenResponse = await getAccessToken(code);
-  if (tokenResponse.error) {
-    return res.status(400).json(tokenResponse);
-  }
-
-  const { access_token, refresh_token, expires_in } = tokenResponse;
-
-  // Save tokens in Supabase
-  const { error } = await supabase
-    .from('users')
-    .upsert(
-      { id: req.cookies['sb-user-id'], spotify_access_token: access_token, spotify_refresh_token: refresh_token, spotify_expires_at: Date.now() + expires_in * 1000 },
-      { onConflict: ['id'] }
-    );
-
-  if (error) {
-    console.error(error);
-    return res.status(500).send('Database error');
-  }
-
-  // Redirect back to your app
-  res.redirect('/');
+  const data = await response.json();
+  return new Response(JSON.stringify(data), { status: 200 });
 }

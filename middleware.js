@@ -1,13 +1,19 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function middleware(req) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-  await supabase.auth.getSession();
-  return res;
+  const token = req.cookies.get("spotify_access_token");
+
+  // For protected paths (adjust as needed)
+  const protectedPaths = ["/account", "/player", "/library"];
+  if (protectedPaths.some((path) => req.nextUrl.pathname.startsWith(path))) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/account/:path*", "/player/:path*", "/library/:path*"],
 };

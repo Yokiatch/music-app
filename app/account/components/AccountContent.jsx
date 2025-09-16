@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
-import Button from "@/components/Button";
 
 const AccountContent = () => {
   const router = useRouter();
-  const { isLoading, user, userDetails } = useUser();
+  const { isLoading, user } = useUser(); // user has Spotify profile info
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/");
@@ -20,20 +19,20 @@ const AccountContent = () => {
       <div className="mb-4">
         <h1 className="text-white text-3xl font-semibold">Account Settings</h1>
       </div>
-      
+
       <div className="mb-6">
         <h2 className="text-white text-xl mb-2">Profile Information</h2>
         <div className="text-neutral-400">
-          <p>Email: {user?.email}</p>
-          <p>Account created: {new Date(user?.created_at).toLocaleDateString()}</p>
+          <p>Email: {user?.email || "Not available"}</p>
+          <p>Account created: {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "Unknown"}</p>
         </div>
       </div>
 
       <div className="mb-6">
         <h2 className="text-white text-xl mb-2">Music Library</h2>
         <div className="text-neutral-400">
-          <p>All your uploaded songs and favorites are stored securely</p>
-          <p>Connect to Spotify for additional music streaming</p>
+          <p>Your favorites and playlists are managed via Spotify.</p>
+          <p>Enjoy seamless music streaming with your connected Spotify account.</p>
         </div>
       </div>
     </div>

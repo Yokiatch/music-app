@@ -5,38 +5,59 @@ import { BiSearch } from "react-icons/bi";
 import { HiHome } from "react-icons/hi";
 import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
 import { twMerge } from "tailwind-merge";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { FaUserAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 import Button from "./Button";
-import useAuthModal from "@/hooks/useAuthModal";
-import { useUser } from "@/hooks/useUser";
 import usePlayer from "@/hooks/usePlayer";
+import { useEffect, useState } from "react";
+
+const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI;
+const SCOPES = [
+  "user-read-email",
+  "user-read-private",
+  "streaming",
+  "user-modify-playback-state",
+  "user-read-playback-state",
+].join(" ");
+
+const getAccessToken = () => {
+  // Get token from localStorage or other storage
+  return localStorage.getItem("spotify_access_token");
+};
 
 const Header = ({ children, className }) => {
   const router = useRouter();
-  const authModal = useAuthModal();
-
   const player = usePlayer();
-  const { user } = useUser();
-  const supabaseClient = useSupabaseClient();
+  const [accessToken, setAccessToken] = useState(null);
 
-  const handleLogout = async () => {
-    const { error } = await supabaseClient.auth.signOut();
+  useEffect(() => {
+    const token = getAccessToken();
+    setAccessToken(token);
+  }, []);
 
+  const handleLogout = () => {
+    // Clear stored access token on logout
+    localStorage.removeItem("spotify_access_token");
+    setAccessToken(null);
     player.reset();
     router.refresh();
+    toast.success("Logged out from Spotify");
+  };
 
-    if (error) toast.error(error.message);
-    else toast.success("Logged Out");
+  const handleSpotifyLogin = () => {
+    const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${CLIENT_ID}&scope=${encodeURIComponent(
+      SCOPES,
+    )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    window.location.href = authUrl;
   };
 
   return (
     <div
       className={twMerge(
         `h-fit bg-gradient-to-b from-emerald-800 p-6`,
-        className
+        className,
       )}
     >
       <div className="w-full mb-4 flex items-center justify-between">
@@ -69,37 +90,22 @@ const Header = ({ children, className }) => {
           </button>
         </div>
         <div className="flex justify-between items-center gap-x-4">
-          {user ? (
+          {accessToken ? (
             <div className="flex gap-x-4 items-center">
               <Button className="bg-white px-6 py-2" onClick={handleLogout}>
                 Logout
               </Button>
-              <Button
-                className="bg-white"
-                onClick={() => router.push("/account")}
-              >
+              <Button className="bg-white" onClick={() => router.push("/account")}>
                 <FaUserAlt />
               </Button>
             </div>
           ) : (
-            <>
-              <div>
-                <Button
-                  className="bg-transparent text-neutral-300 font-medium"
-                  onClick={() => authModal.onOpen("signup")}
-                >
-                  Sign up
-                </Button>
-              </div>
-              <div>
-                <Button
-                  className="bg-white px-6 py-2"
-                  onClick={() => authModal.onOpen("login")}
-                >
-                  Login
-                </Button>
-              </div>
-            </>
+            <Button
+              className="bg-white px-6 py-2"
+              onClick={handleSpotifyLogin}
+            >
+              Login with Spotify
+            </Button>
           )}
         </div>
       </div>

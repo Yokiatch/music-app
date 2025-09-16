@@ -1,28 +1,20 @@
-// components/Library.jsx
-
 "use client";
 
 import { AiOutlinePlus } from "react-icons/ai";
 import { TbPlaylist } from "react-icons/tb";
 
-import useAuthModal from "@/hooks/useAuthModal";
-import { useUser } from "@/hooks/useUser";
 import useUploadModal from "@/hooks/useUploadModal";
 import MediaItem from "./MediaItem";
 import useOnPlay from "@/hooks/useOnPlay";
 
-const Library = ({ songs }) => {
-  const authModal = useAuthModal();
+const Library = ({ songs, accessToken }) => {
   const uploadModal = useUploadModal();
-  const { user } = useUser();
-  const onPlay = useOnPlay(songs);
+  const onPlay = useOnPlay(songs, accessToken); // pass token if needed
 
   const handleUpload = () => {
-    if (!user) {
-      authModal.onOpen();
-      return;
-    }
-    uploadModal.onOpen();
+    // With Spotify OAuth-only flow, no upload feature
+    // You can remove or disable upload or show info/alternative
+    alert("Uploading songs is not supported with Spotify playback.");
   };
 
   return (
@@ -34,7 +26,8 @@ const Library = ({ songs }) => {
         </div>
         <AiOutlinePlus
           onClick={handleUpload}
-          className="text-neutral-400 cursor-pointer hover:text-white transition"
+          className="text-neutral-400 cursor-not-allowed opacity-50"
+          title="Uploading not supported with Spotify playback"
         />
       </div>
       <div className="flex flex-col gap-y-2 mt-4 px-3">

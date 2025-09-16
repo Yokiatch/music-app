@@ -1,37 +1,39 @@
-// hooks/useUser.jsx
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useSessionContext, useUser as useSupaUser } from "@supabase/auth-helpers-react";
-import { supabase } from "@/libs/supabase";
 
 const UserContext = createContext();
 
 export function MyUserContextProvider({ children }) {
-  const { session } = useSessionContext();
-  const supaUser = useSupaUser();
   const [spotifyToken, setSpotifyToken] = useState(null);
+  const [spotifyUser, setSpotifyUser] = useState(null);
+
+  // Function to fetch Spotify user profile with token
+  const fetchSpotifyUser = async (token) => {
+    try {
+      const res = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch Spotify user");
+      const data = await res.json();
+      setSpotifyUser(data);
+    } catch (err) {
+      console.error(err);
+      setSpotifyUser(null);
+      setSpotifyToken(null);
+      localStorage.removeItem("spotify_access_token");
+    }
+  };
 
   useEffect(() => {
-    async function fetchToken() {
-      if (supaUser) {
-        const { data } = await supabase
-          .from("users")
-          .select("spotify_access_token, spotify_expires_at, spotify_refresh_token")
-          .eq("id", supaUser.id)
-          .single();
-
-        if (data && data.spotify_access_token && Date.now() < data.spotify_expires_at) {
-          setSpotifyToken(data.spotify_access_token);
-        } else if (data && data.spotify_refresh_token) {
-          // Optionally refresh token here
-        }
-      }
+    const token = localStorage.getItem("spotify_access_token");
+    if (token) {
+      setSpotifyToken(token);
+      fetchSpotifyUser(token);
     }
-    fetchToken();
-  }, [supaUser]);
+  }, []);
 
   return (
-    <UserContext.Provider value={{ session, user: supaUser, spotifyToken }}>
+    <UserContext.Provider value={{ spotifyToken, spotifyUser, setSpotifyToken }}>
       {children}
     </UserContext.Provider>
   );

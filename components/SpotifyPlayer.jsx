@@ -1,27 +1,40 @@
-import SpotifyWebPlayback from "react-spotify-web-playback";
-import { useUser } from "@/hooks/useUser";
+// components/SpotifyPlayer.jsx
 
-export default function SpotifyPlayer({ trackUris = [], isPlaying = false }) {
-  const { spotifyToken } = useUser();
-  if (!spotifyToken) {
-    return (
-      <div className="h-24 bg-black border-t border-gray-800 flex items-center justify-center">
-        <p className="text-white">Connect to Spotify to play music</p>
-      </div>
-    );
-  }
+import React, { useEffect, useState } from "react";
+import { useSpotifyAuth } from "../providers/SpotifyAuthProvider";
+
+export default function SpotifyPlayer() {
+  const { accessToken } = useSpotifyAuth();
+  const [player, setPlayer] = useState(null);
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    document.body.appendChild(script);
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: "Music App Player",
+        getOAuthToken: cb => { cb(accessToken); }
+      });
+
+      player.connect();
+      setPlayer(player);
+
+      // Add player event listeners here!
+    };
+
+    return () => {
+      window.onSpotifyWebPlaybackSDKReady = null;
+    };
+  }, [accessToken]);
+
   return (
-    <div className="h-24 bg-black border-t border-gray-800">
-      <SpotifyWebPlayback
-        token={spotifyToken}
-        uris={trackUris}
-        play={isPlaying}
-        styles={{
-          activeColor:"#1db954", bgColor:"#000", color:"#fff",
-          loaderColor:"#1db954", sliderColor:"#1db954",
-          trackArtistColor:"#ccc", trackNameColor:"#fff", height:"96px"
-        }}
-      />
+    <div>
+      <h2>Spotify Player</h2>
+      {/* Add UI controls */}
     </div>
   );
 }

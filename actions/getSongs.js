@@ -1,17 +1,37 @@
-import { createSupabaseServerClient } from "@/libs/supabase";
 import { cookies } from "next/headers";
 
 const getSongs = async () => {
-  const supabase = createSupabaseServerClient(cookies);
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get("spotify_access_token")?.value;
 
-  const { data, error } = await supabase
-    .from("songs")
-    .select("*")
-    .order("created_at", { ascending: false });
+  if (!accessToken) {
+    console.log("No Spotify access token available");
+    return [];
+  }
 
-  if (error) console.log(error);
+  try {
+    // Example: Fetch New Releases (albums)
+    const response = await fetch("https://api.spotify.com/v1/browse/new-releases?limit=20", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-  return data || [];
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Spotify API error:", errorData);
+      return [];
+    }
+
+    const data = await response.json();
+
+    // Return an array of tracks extracted from albums (or return albums only)
+    // Here, return albums for display; you may choose to further fetch tracks per album
+    return data.albums.items;
+  } catch (error) {
+    console.error("Failed to fetch songs from Spotify:", error.message);
+    return [];
+  }
 };
 
 export default getSongs;

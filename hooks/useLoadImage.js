@@ -1,16 +1,16 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+// useLoadImage.js
 
-const useLoadImage = (song) => {
-  const supabaseClient = useSupabaseClient();
+// Expects a Spotify track or album object with image data
+const useLoadImage = (spotifyItem) => {
+  if (!spotifyItem) return null;
 
-  if (!song) return null;
+  // Spotify track objects carry an album object with an images array
+  // Return the first image URL or null if none
+  if (spotifyItem.album && spotifyItem.album.images && spotifyItem.album.images.length > 0) {
+    return spotifyItem.album.images[0].url;
+  }
 
-  const { data: imageData } = supabaseClient
-    .storage
-    .from("images")
-    .getPublicUrl(song.image_path);
-
-  return imageData.publicUrl;
+  return null;
 };
 
 export default useLoadImage;

@@ -47,11 +47,10 @@ const Header = ({ children, className }) => {
   };
 
   const handleSpotifyLogin = () => {
-    const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${CLIENT_ID}&scope=${encodeURIComponent(
-      SCOPES,
-    )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-    window.location.href = authUrl;
-  };
+  const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${CLIENT_ID}&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+  window.location.href = authUrl;
+};
+
 
   return (
     <div

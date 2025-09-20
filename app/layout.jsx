@@ -1,11 +1,16 @@
-import { SpotifyAuthProvider } from '../providers/SpotifyAuthProvider';
+"use client";
+
+import { SpotifyAuthProvider } from "../providers/SpotifyAuthProvider";
+import { MyUserContextProvider } from "@/hooks/useUser";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
         <SpotifyAuthProvider>
-          {children}
+          <MyUserContextProvider>
+            {children}
+          </MyUserContextProvider>
         </SpotifyAuthProvider>
       </body>
     </html>

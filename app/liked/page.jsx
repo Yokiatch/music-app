@@ -1,48 +1,33 @@
-import Image from "next/image";
+import { cookies } from "next/headers";
 
-import getLikedSongs from "@/actions/getLikedSongs";
-import Header from "@/components/Header";
-import LikedContent from "./components/LikedContent";
+const getLikedSongs = async () => {
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get("spotify_access_token");
 
-export const revalidate = 0; // to avoid caching of this page
+  if (!accessToken) {
+    console.log("No Spotify access token available");
+    return [];
+  }
 
-const Liked = async () => {
-  const likedSongs = await getLikedSongs();
+  try {
+    const response = await fetch("https://api.spotify.com/v1/me/tracks?limit=50", {
+      headers: {
+        Authorization: `Bearer ${accessToken.value}`,
+      },
+    });
 
-  return (
-    <div
-      className="
-    bg-neutral-900
-    rounded-lg
-    h-full
-    w-full
-    overflow-hidden
-    overflow-y-auto
-  "
-    >
-      <Header>
-        <div className="mt-20">
-          <div className="flex flex-col md:flex-row items-center gap-x-5">
-            <div className="relative h-32 w-32 lg:h-44 lg:w-44">
-              <Image
-                fill
-                alt="Playlist"
-                className="object-cover"
-                src="/images/liked.png"
-              />
-            </div>
-            <div className="flex flex-col gap-y-2 mt-4 md:mt-0">
-              <p className="hidded md:block">Playlist</p>
-              <h1 className="text-white text-4xl lg:text-7xl sm:text-5xl font-bold">
-                Liked Songs
-              </h1>
-            </div>
-          </div>
-        </div>
-      </Header>
-      <LikedContent songs={likedSongs} />
-    </div>
-  );
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Spotify API error:", errorData);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.items.map((item) => item.track);
+  } catch (error) {
+    console.error("Failed to fetch liked songs:", error.message);
+    return [];
+  }
 };
 
-export default Liked;
+export default getLikedSongs;

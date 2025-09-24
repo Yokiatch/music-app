@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-
 import useLoadImage from "@/hooks/useLoadImage";
 
 const MediaItem = ({ data, onClick }) => {
@@ -29,16 +28,17 @@ const MediaItem = ({ data, onClick }) => {
       <div
         className="
           relative
+          h-[48px]
+          w-[48px]
           rounded-md
-          min-h-[48px]
-          min-w-[48px]
           overflow-hidden
+          flex-shrink-0
         "
       >
         <Image
-          fill
-          src={imageUrl || "/images/liked.png"} // fallback image
+          src={imageUrl || "/images/liked.png"}
           alt={data.name || "Media Item"}
+          fill
           className="object-cover"
           sizes="48px"
         />
@@ -53,7 +53,7 @@ const MediaItem = ({ data, onClick }) => {
       >
         <p className="text-white truncate">{data.name || "Untitled"}</p>
         <p className="text-neutral-400 text-sm truncate">
-          {data.artists && data.artists.length > 0 ? data.artists[0].name : "Unknown Artist"}
+          {data.artists?.[0]?.name || "Unknown Artist"}
         </p>
       </div>
     </div>

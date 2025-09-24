@@ -7,6 +7,7 @@ export async function GET(request) {
   const error = searchParams.get("error");
 
   if (error) {
+    console.error("Spotify auth error:", error);
     return NextResponse.redirect(new URL("/?error=access_denied", request.url));
   }
 
@@ -15,7 +16,6 @@ export async function GET(request) {
   }
 
   try {
-    // Exchange code for tokens
     const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
@@ -34,24 +34,31 @@ export async function GET(request) {
     const tokens = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
+      console.error("Token exchange failed:", tokens);
       throw new Error(tokens.error_description || "Failed to get tokens");
     }
 
-    // Store tokens in cookies
+    // Store tokens with proper expiration
     const cookieStore = cookies();
+    const expiresAt = Date.now() + (tokens.expires_in * 1000);
+    
     cookieStore.set("spotify_access_token", tokens.access_token, {
       maxAge: tokens.expires_in,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
 
-    if (tokens.refresh_token) {
-      cookieStore.set("spotify_refresh_token", tokens.refresh_token, {
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      });
-    }
+    cookieStore.set("spotify_refresh_token", tokens.refresh_token, {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    cookieStore.set("spotify_token_expires_at", expiresAt.toString(), {
+      maxAge: 60 * 60 * 24 * 30,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
 
     return NextResponse.redirect(new URL("/?success=logged_in", request.url));
   } catch (error) {

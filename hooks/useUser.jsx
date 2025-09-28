@@ -9,18 +9,25 @@ export function MyUserContextProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Function to get token from server
-  const getTokenFromServer = async () => {
-    try {
-      const response = await fetch('/api/auth/token');
-      if (response.ok) {
-        const data = await response.json();
-        return data.access_token;
-      }
-    } catch (error) {
-      console.error("Failed to get token:", error);
+  // In hooks/useUser.jsx - Add better error handling
+const getTokenFromServer = async () => {
+  try {
+    const response = await fetch('/api/auth/token');
+    if (response.status === 401) {
+      // Token not found or expired, redirect to login
+      window.location.href = `/api/auth/login`;
+      return null;
     }
-    return null;
-  };
+    if (response.ok) {
+      const data = await response.json();
+      return data.access_token;
+    }
+  } catch (error) {
+    console.error("Failed to get token:", error);
+  }
+  return null;
+};
+
 
   // Function to fetch Spotify user profile
   const fetchSpotifyUser = async (token) => {
